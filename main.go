@@ -1,8 +1,12 @@
 package main
 
-import "io/ioutil"
-import "fmt"
-import "math"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+)
 
 func check(e error) {
 	if e != nil {
@@ -10,48 +14,28 @@ func check(e error) {
 	}
 }
 func main() {
-	data, err := ioutil.ReadFile("input.txt")
+	file, err := os.Open("input.txt")
 	check(err)
-	index := 10 // Index of n. 5
-	keyboard := []int{
-		0, 0, 1, 0, 0,
-		0, 2, 3, 4, 0,
-		5, 6, 7, 8, 9,
-		0, 10, 11, 12, 0,
-		0, 0, 13, 0, 0}
-	for _, val := range data {
-		if val != '\n' {
-			index = calculateResult(val, index, keyboard)
-		} else {
-			fmt.Printf("%d ", keyboard[index])
+	scanner := bufio.NewScanner(file)
+	validTriangles := 0
+
+	for scanner.Scan() {
+		elems := strings.Split(scanner.Text(), " ")
+		var vertex []int
+		for i := 0; i < len(elems); i++ {
+			if s, err := strconv.Atoi(strings.Trim(elems[i], " ")); err == nil {
+				vertex = append(vertex, s)
+			}
 		}
+		validTriangles += calculateResult(vertex)
 	}
+	fmt.Printf("Found %d valid triangles\n", validTriangles)
 }
 
-func calculateResult(move byte, index int, keyboard []int) int {
-	length := len(keyboard)
-	increment := int(math.Sqrt(float64(length)))
-	if move == 'U' {
-		if index-increment < 0 || keyboard[index-increment] == 0 {
-			return index
-		}
-		return index - increment
-	} else if move == 'D' {
-		if index+increment >= length || keyboard[index+increment] == 0 {
-			return index
-		}
-		return index + increment
-	} else if move == 'R' {
-		if (index+1)%increment == 0 || keyboard[index+1] == 0 {
-			return index
-		}
-		return index + 1
-	} else if move == 'L' {
-		if (index)%increment == 0 || keyboard[index-1] == 0 {
-			return index
-		}
-		return index - 1
-	} else {
-		panic("Wrong move")
+func calculateResult(vertex []int) int {
+	res := 0
+	if vertex[0]+vertex[1] > vertex[2] && vertex[1]+vertex[2] > vertex[0] && vertex[0]+vertex[2] > vertex[1] {
+		res = 1
 	}
+	return res
 }
